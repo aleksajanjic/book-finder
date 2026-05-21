@@ -7,11 +7,29 @@ function BookDetails() {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>();
 	const [book, setBook] = useState<BookDetail | null>(null);
+	const [authors, setAuthors] = useState<string[]>([]);
 	const coverId = book?.covers?.[0] ?? (book as any)?.cover_i;
 	const description =
 		typeof book?.description === "string"
 			? book?.description
 			: book?.description?.value;
+
+	const fetchAuthors = async (authorRefs: any[]) => {
+		const results = await Promise.all(
+			authorRefs.map(async (ref) => {
+				const id = ref.author.key.split("/").pop();
+
+				const res = await fetch(
+					`https://openlibrary.org/authors/${id}.json`,
+				);
+
+				const data = await res.json();
+				return data.name;
+			}),
+		);
+
+		setAuthors(results);
+	};
 
 	useEffect(() => {
 		if (!id) {
@@ -21,6 +39,11 @@ function BookDetails() {
 		const fetchBook = async () => {
 			try {
 				const data = await getBook(id);
+
+				if (data.authors) {
+					fetchAuthors(data.authors);
+				}
+
 				setBook(data);
 			} catch (error) {
 				console.error(error);
@@ -65,9 +88,28 @@ function BookDetails() {
 							)}
 						</div>
 
-						<p className="text-text-secondary mt-2">
-							{book.author_name?.join(", ")}
-						</p>
+						<div className="flex flex-wrap items-center gap-2 mt-3">
+							{authors.length > 0 ? (
+								<>
+									<p className="text-text-secondary">
+										Authors:
+									</p>
+
+									{authors.map((author) => (
+										<div
+											key={author}
+											className="px-3 py-1 rounded-full border border-border bg-surface-card text-sm text-text-secondary"
+										>
+											{author}
+										</div>
+									))}
+								</>
+							) : (
+								<div className="text-text-secondary">
+									Unknown author
+								</div>
+							)}
+						</div>
 					</div>
 
 					<div className="flex flex-wrap gap-3">

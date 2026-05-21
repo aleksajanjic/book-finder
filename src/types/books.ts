@@ -15,6 +15,7 @@ export interface BookDetail {
 	edition_count?: number;
 	first_publish_date?: string;
 	ebook_access?: string;
+	authors?: string[];
 }
 
 export interface ViewedBook {
