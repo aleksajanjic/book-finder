@@ -8,9 +8,13 @@ export interface BookSearchResult {
 
 export interface BookDetail {
 	title: string;
-	description?: string | { value: string };
+	description?: string | { value?: string };
 	covers?: number[];
 	subjects?: string[];
+	author_name?: string[];
+	edition_count?: number;
+	first_publish_date?: string;
+	ebook_access?: string;
 }
 
 export interface ViewedBook {
@@ -29,5 +33,5 @@ export interface Book {
 	key: string;
 	public_scan_b: boolean;
 	title: string;
-  cover_i?: number;
+	cover_i?: number;
 }

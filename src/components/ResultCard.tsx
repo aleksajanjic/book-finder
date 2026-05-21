@@ -7,15 +7,13 @@ interface ResultCardProps {
 }
 
 function ResultCard({ book }: ResultCardProps) {
-	console.log("book", book);
-
 	const navigate = useNavigate();
 	const id = book.key.split("/").pop();
 
 	return (
 		<div
 			onClick={() => navigate(`/books/${id}`)}
-			className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden"
+			className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden cursor-pointer"
 		>
 			<div className="w-full h-75 bg-surface-elevated">
 				{book.cover_i && (
