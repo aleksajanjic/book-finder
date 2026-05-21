@@ -22,6 +22,11 @@ export default {
 					secondary: "#8080b0",
 					muted: "#6b6b7a",
 				},
+				neutral: {
+					offwhite: "#f4f4f6",
+					soft: "#e9e9ee",
+					faint: "#dcdce6",
+				},
 			},
 		},
 	},

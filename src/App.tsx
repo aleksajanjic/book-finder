@@ -6,13 +6,15 @@ import Header from "./components/Header";
 
 function App() {
 	return (
-		<div className="min-h-screen bg-surface text-text-primary p-1">
+		<div className="min-h-screen bg-surface text-text-primary">
 			<Header />
 
-			<Routes>
-				<Route path={"/"} element={<Home></Home>} />
-				<Route path="/books/:id" element={<Books></Books>} />
-			</Routes>
+			<div className="p-6">
+				<Routes>
+					<Route path={"/"} element={<Home></Home>} />
+					<Route path="/books/:id" element={<Books></Books>} />
+				</Routes>
+			</div>
 		</div>
 	);
 }

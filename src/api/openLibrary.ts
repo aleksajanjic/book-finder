@@ -1,21 +1,33 @@
-const BASE = "https://openlibrary.org";
-const COVERS = "https://covers.openlibrary.org/b/id";
+import { API } from "../constants/api";
+import type { BookDetail, BookSearchResult } from "../types/books";
 
-export const searchBooks = async (
-	title: string,
-): Promise<BookSearchResult[]> => {
+export async function searchBooks(query: string, page = 1) {
 	const res = await fetch(
-		`${BASE}/search.json?title=${encodeURIComponent(title)}`,
+		`${API.BASE}/search.json?title=${encodeURIComponent(query)}&page=${page}`,
 	);
+
+	if (!res.ok) throw new Error("Search failed");
+
 	const data = await res.json();
-	// Only return books that have a cover
-	return data.docs.filter((b: BookSearchResult) => b.cover_i);
-};
 
-export const getBook = async (id: string): Promise<BookDetail> => {
-	const res = await fetch(`${BASE}/works/${id}.json`);
+	return {
+		docs: data.docs.filter((b: BookSearchResult) => b.cover_i),
+		numFound: data.numFound,
+	};
+}
+
+export async function getBook(id: string): Promise<BookDetail> {
+	const res = await fetch(`${API.BASE}/works/${id}.json`);
+
+	if (!res.ok) throw new Error("Book fetch failed");
+
 	return res.json();
-};
+}
 
-export const getCoverUrl = (coverId: number, size: "S" | "M" | "L" = "L") =>
-	`${COVERS}/${coverId}-${size}.jpg`;
+export function getCoverUrl(
+	coverId: number | undefined,
+	size: "S" | "M" | "L" = "L",
+): string | null {
+	if (!coverId) return null;
+	return `${API.COVERS}/${coverId}-${size}.jpg`;
+}
