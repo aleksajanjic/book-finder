@@ -24,10 +24,10 @@ export async function getBook(id: string): Promise<BookDetail> {
 	return res.json();
 }
 
-export function getCoverUrl(
-	coverId: number | undefined,
+export const getCoverUrl = (
+	coverId?: number,
 	size: "S" | "M" | "L" = "L",
-): string | null {
-	if (!coverId) return null;
+): string | undefined => {
+	if (!coverId) return undefined;
 	return `${API.COVERS}/${coverId}-${size}.jpg`;
-}
+};

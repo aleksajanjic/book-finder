@@ -10,9 +10,11 @@ function Results({ books }: ResultsProps) {
 		<div>
 			<h1>Results · {books.length} found</h1>
 
-			{books.map((book) => (
-				<ResultCard key={book.key} book={book} />
-			))}
+			<div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
+				{books.map((book) => (
+					<ResultCard key={book.key} book={book} />
+				))}
+			</div>
 		</div>
 	);
 }

@@ -3,6 +3,7 @@ import RecentlyViewed from "../components/RecentlyViewed";
 import Results from "../components/Results";
 import Search from "../components/Search";
 import { searchBooks } from "../api/openLibrary";
+import Pagination from "../components/Pagination";
 
 function Home() {
 	const [query, setQuery] = useState("");
@@ -35,7 +36,14 @@ function Home() {
 	return (
 		<div className="flex flex-col">
 			<Search query={query} setQuery={setQuery} onSearch={handleSearch} />
-			{isLoading ? <p>Loading...</p> : <Results books={books} />}
+			{isLoading ? (
+				<p>Loading...</p>
+			) : (
+				<>
+					<Results books={books} />
+					<Pagination />
+				</>
+			)}
 			<RecentlyViewed />
 		</div>
 	);

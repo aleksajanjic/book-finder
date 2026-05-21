@@ -29,4 +29,5 @@ export interface Book {
 	key: string;
 	public_scan_b: boolean;
 	title: string;
+  cover_i?: number;
 }
