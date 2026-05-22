@@ -1,10 +1,9 @@
+import { Link } from "react-router-dom";
 import { getCoverUrl } from "../api/openLibrary";
 import { getPreviouslyViewed } from "../utils/previouslyViewed";
 
 function PreviouslyViewed() {
 	const books = getPreviouslyViewed();
-
-	console.log("pv", books);
 
 	return (
 		<section className="mt-12">
@@ -22,9 +21,12 @@ function PreviouslyViewed() {
 
 			<div className="flex gap-3 overflow-x-auto py-2">
 				{books.map((book) => (
-					<div
+					<Link
 						key={book.key}
 						className="min-w-45 flex gap-2 p-2 rounded-lg border border-border bg-surface-card hover:bg-surface-elevated"
+						to={`/books/${book.key.split("/").pop()}`}
+						target="_blank"
+						rel="noopener noreferrer"
 					>
 						{book.cover_i && (
 							<img
@@ -40,7 +42,7 @@ function PreviouslyViewed() {
 								{book.author_name?.join(", ")}
 							</p>
 						</div>
-					</div>
+					</Link>
 				))}
 			</div>
 
