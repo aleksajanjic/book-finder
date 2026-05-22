@@ -1,18 +1,18 @@
 import type { Book } from "../types/books";
 import { getCoverUrl } from "../api/openLibrary";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface ResultCardProps {
 	book: Book;
 }
 
 function ResultCard({ book }: ResultCardProps) {
-	const navigate = useNavigate();
-	const id = book.key.split("/").pop();
 
 	return (
-		<div
-			onClick={() => navigate(`/books/${id}`)}
+		<Link
+			to={`/books/${book.key.split("/").pop()}`}
+			target="_blank"
+			rel="noopener noreferrer"
 			className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden cursor-pointer"
 		>
 			<div className="w-full h-75 bg-surface-elevated">
@@ -31,7 +31,7 @@ function ResultCard({ book }: ResultCardProps) {
 					{book.author_name?.join(", ")}
 				</p>
 			</div>
-		</div>
+		</Link>
 	);
 }
 
