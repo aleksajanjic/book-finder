@@ -1,4 +1,11 @@
+import { getCoverUrl } from "../api/openLibrary";
+import { getPreviouslyViewed } from "../utils/previouslyViewed";
+
 function PreviouslyViewed() {
+	const books = getPreviouslyViewed();
+
+	console.log("pv", books);
+
 	return (
 		<section className="mt-12">
 			<div className="flex items-center justify-between mb-4">
@@ -13,11 +20,37 @@ function PreviouslyViewed() {
 				</div>
 			</div>
 
-			<div className="rounded-2xl border border-border bg-surface-card p-6">
-				<p className="text-text-secondary">
-					No recently viewed books yet.
-				</p>
+			<div className="flex gap-3 overflow-x-auto py-2">
+				{books.map((book) => (
+					<div
+						key={book.key}
+						className="min-w-45 flex gap-2 p-2 rounded-lg border border-border bg-surface-card hover:bg-surface-elevated"
+					>
+						{book.cover_i && (
+							<img
+								src={getCoverUrl(book.cover_i)}
+								className="w-10 h-14 object-cover rounded"
+							/>
+						)}
+						<div className="flex flex-col justify-center">
+							<p className="text-xs font-medium line-clamp-2">
+								{book.title}
+							</p>
+							<p className="text-[10px] text-text-secondary line-clamp-1">
+								{book.author_name?.join(", ")}
+							</p>
+						</div>
+					</div>
+				))}
 			</div>
+
+			{books.length === 0 && (
+				<div className="rounded-2xl border border-border bg-surface-card p-6">
+					<p className="text-text-secondary">
+						No recently viewed books yet.
+					</p>
+				</div>
+			)}
 		</section>
 	);
 }
