@@ -7,6 +7,7 @@ export interface BookSearchResult {
 }
 
 export interface BookDetail {
+	key: string;
 	title: string;
 	description?: string | { value?: string };
 	covers?: number[];
@@ -35,4 +36,11 @@ export interface Book {
 	public_scan_b: boolean;
 	title: string;
 	cover_i?: number;
+}
+
+export interface PreviousBook {
+	key: string;
+	title: string;
+	cover_i?: number;
+	author_name?: string[];
 }

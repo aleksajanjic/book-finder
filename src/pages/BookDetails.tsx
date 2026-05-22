@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBook, getCoverUrl } from "../api/openLibrary";
 import type { BookDetail } from "../types/books";
+import { addPreviouslyViewed } from "../utils/previouslyViewed";
 
 function BookDetails() {
 	const navigate = useNavigate();
@@ -24,11 +25,14 @@ function BookDetails() {
 				);
 
 				const data = await res.json();
+
 				return data.name;
 			}),
 		);
 
 		setAuthors(results);
+
+		return results;
 	};
 
 	useEffect(() => {
@@ -45,6 +49,17 @@ function BookDetails() {
 				}
 
 				setBook(data);
+
+				const authorNames = data.authors
+					? await fetchAuthors(data.authors)
+					: [];
+
+				addPreviouslyViewed({
+					key: data.key,
+					title: data.title,
+					cover_i: data.covers?.[0],
+					author_name: authorNames,
+				});
 			} catch (error) {
 				console.error(error);
 			}
@@ -53,8 +68,6 @@ function BookDetails() {
 	}, [id]);
 
 	if (!book) return "Loading...";
-
-	console.log("book", book);
 
 	return (
 		<>

@@ -2,7 +2,7 @@ import SearchBar from "./ui/SearchBar";
 import type { SearchProps } from "../types/search";
 
 function Search(props: SearchProps) {
-	const { query, setQuery, onSearch } = props;
+	const { query, setQuery, onSearch, onClear } = props;
 
 	return (
 		<section className="space-y-3">
@@ -16,6 +16,7 @@ function Search(props: SearchProps) {
 				query={query}
 				setQuery={setQuery}
 				onSearch={onSearch}
+				onClear={onClear}
 			/>
 		</section>
 	);

@@ -1,14 +1,21 @@
 import type { SearchProps } from "../../types/search";
 
 function SearchBar(props: SearchProps) {
-	const { query, setQuery, onSearch } = props;
+	const { query, setQuery, onSearch, onClear } = props;
 
 	return (
 		<div className="flex gap-2">
 			<input
 				type="text"
 				value={query}
-				onChange={(e) => setQuery(e.target.value)}
+				onChange={(e) => {
+					const value = e.target.value;
+					setQuery(value);
+
+					if (!value.trim()) {
+						onClear();
+					}
+				}}
 				onKeyDown={(e) => {
 					if (e.key !== "Enter") {
 						return;
@@ -33,6 +40,12 @@ function SearchBar(props: SearchProps) {
 				className="px-4 py-2 rounded-md bg-accent text-white cursor-pointer"
 			>
 				Search
+			</button>
+			<button
+				onClick={onClear}
+				className="px-4 py-2 rounded-md border border-border"
+			>
+				Clear
 			</button>
 		</div>
 	);

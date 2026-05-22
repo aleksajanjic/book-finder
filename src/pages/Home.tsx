@@ -1,5 +1,5 @@
 import { useState } from "react";
-import RecentlyViewed from "../components/RecentlyViewed";
+import PreviouslyViewed from "../components/PreviouslyViewed";
 import Results from "../components/Results";
 import Search from "../components/Search";
 import { searchBooks } from "../api/openLibrary";
@@ -29,13 +29,24 @@ function Home() {
 		}
 	};
 
+	const handleClear = () => {
+		setQuery("");
+		setBooks([]);
+	};
+
 	// const handleNextPage = async () => {};
 
 	// const handlePreviousPage = async () => {};
 
 	return (
 		<div className="flex flex-col">
-			<Search query={query} setQuery={setQuery} onSearch={handleSearch} />
+			<Search
+				query={query}
+				setQuery={setQuery}
+				onSearch={handleSearch}
+				onClear={handleClear}
+			/>
+
 			{isLoading ? (
 				<p>Loading...</p>
 			) : (
@@ -44,7 +55,7 @@ function Home() {
 					<Pagination />
 				</>
 			)}
-			<RecentlyViewed />
+			<PreviouslyViewed />
 		</div>
 	);
 }
