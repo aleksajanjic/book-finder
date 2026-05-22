@@ -4,6 +4,7 @@ import Results from "../components/Results";
 import Search from "../components/Search";
 import { searchBooks } from "../api/openLibrary";
 import Pagination from "../components/Pagination";
+import Loader from "../components/ui/Loader";
 
 function Home() {
 	const [query, setQuery] = useState("");
@@ -47,9 +48,9 @@ function Home() {
 				onClear={handleClear}
 			/>
 
-			{isLoading ? (
-				<p>Loading...</p>
-			) : (
+			{isLoading && <Loader />}
+
+			{!isLoading && books.length > 0 && (
 				<>
 					<Results books={books} />
 					<Pagination />
