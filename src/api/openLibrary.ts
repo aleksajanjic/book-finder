@@ -1,10 +1,38 @@
 import { API } from "../constants/api";
 import type { BookDetail, BookSearchResult } from "../types/books";
 
-export async function searchBooks(query: string, page = 1, limit = 8) {
-	const res = await fetch(
-		`${API.BASE}/search.json?title=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
-	);
+export const BOOKS_PER_PAGE = 8;
+
+const SEARCH_FIELDS = "key,title,author_name,cover_i,first_publish_year";
+
+export interface SearchBooksWithCoversResult {
+	docs: BookSearchResult[];
+	numFound: number;
+}
+
+function buildCoverSearchQuery(title: string): string {
+	const trimmed = title.trim();
+	const titleClause = trimmed.includes(" ")
+		? `title:"${trimmed.replace(/"/g, '\\"')}"`
+		: `title:${trimmed}`;
+
+	return `${titleClause} AND cover_i:[1 TO *]`;
+}
+
+export async function searchBooksWithCovers(
+	query: string,
+	page = 1,
+): Promise<SearchBooksWithCoversResult> {
+	const offset = (page - 1) * BOOKS_PER_PAGE;
+	const params = new URLSearchParams({
+		q: buildCoverSearchQuery(query),
+		offset: String(offset),
+		limit: String(BOOKS_PER_PAGE),
+		facet: "false",
+		fields: SEARCH_FIELDS,
+	});
+
+	const res = await fetch(`${API.BASE}/search.json?${params}`);
 
 	if (!res.ok) {
 		throw new Error("Search failed");
@@ -12,11 +40,9 @@ export async function searchBooks(query: string, page = 1, limit = 8) {
 
 	const data = await res.json();
 
-	const filteredDocs = data.docs.filter((b: BookSearchResult) => b.cover_i);
-
 	return {
-		docs: filteredDocs,
-		numFound: data.numFound,
+		docs: data.docs ?? [],
+		numFound: data.numFound ?? 0,
 	};
 }
 

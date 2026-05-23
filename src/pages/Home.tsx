@@ -1,26 +1,42 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PreviouslyViewed from "../components/PreviouslyViewed";
 import Results from "../components/Results";
 import Search from "../components/Search";
-import { searchBooks } from "../api/openLibrary";
+import {
+	BOOKS_PER_PAGE,
+	searchBooksWithCovers,
+} from "../api/openLibrary";
 import Pagination from "../components/Pagination";
 import Loader from "../components/ui/Loader";
-
-const BOOKS_PER_PAGE = 100;
+import type { BookSearchResult } from "../types/books";
 
 function Home() {
 	const [query, setQuery] = useState("");
-	const [books, setBooks] = useState([]);
+	const [books, setBooks] = useState<BookSearchResult[]>([]);
+	const [totalCount, setTotalCount] = useState(0);
 	const [page, setPage] = useState(1);
-	const [totalPages, setTotalPages] = useState(0);
 	const [isLoading, setIsLoading] = useState(false);
+	const pageCacheRef = useRef<Map<number, BookSearchResult[]>>(new Map());
+
+	const totalPages = Math.ceil(totalCount / BOOKS_PER_PAGE);
+
+	const loadPage = async (searchQuery: string, pageNumber: number) => {
+		const cached = pageCacheRef.current.get(pageNumber);
+		if (cached) {
+			setBooks(cached);
+			return;
+		}
+
+		const data = await searchBooksWithCovers(searchQuery, pageNumber);
+		pageCacheRef.current.set(pageNumber, data.docs);
+		setBooks(data.docs);
+		setTotalCount(data.numFound);
+	};
 
 	const fetchBooks = async (searchQuery: string, pageNumber: number) => {
 		try {
 			setIsLoading(true);
-			const data = await searchBooks(searchQuery, pageNumber);
-			setBooks(data.docs);
-			setTotalPages(Math.ceil(data.numFound / BOOKS_PER_PAGE));
+			await loadPage(searchQuery, pageNumber);
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -33,8 +49,11 @@ function Home() {
 			return;
 		}
 
+		pageCacheRef.current = new Map();
 		setQuery(value);
 		setPage(1);
+		setBooks([]);
+		setTotalCount(0);
 		await fetchBooks(value, 1);
 	};
 
@@ -50,8 +69,9 @@ function Home() {
 	const handleClear = () => {
 		setQuery("");
 		setBooks([]);
+		setTotalCount(0);
 		setPage(1);
-		setTotalPages(0);
+		pageCacheRef.current = new Map();
 	};
 
 	return (
@@ -67,15 +87,17 @@ function Home() {
 
 			{!isLoading && books.length > 0 && (
 				<>
-					<Results books={books} />
+					<Results books={books} totalCount={totalCount} />
 
-					<div className="flex justify-center items-center m-10">
-						<Pagination
-							currentPage={page}
-							totalPages={totalPages}
-							onPageChange={handlePageChange}
-						/>
-					</div>
+					{totalPages > 1 && (
+						<div className="flex justify-center items-center m-10">
+							<Pagination
+								currentPage={page}
+								totalPages={totalPages}
+								onPageChange={handlePageChange}
+							/>
+						</div>
+					)}
 				</>
 			)}
 
