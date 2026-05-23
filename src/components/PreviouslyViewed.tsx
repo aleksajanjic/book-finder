@@ -25,7 +25,6 @@ function PreviouslyViewed() {
 						key={book.key}
 						className="min-w-45 flex gap-2 p-2 rounded-lg border border-border bg-surface-card hover:bg-surface-elevated"
 						to={`/books/${book.key.split("/").pop()}`}
-						target="_blank"
 						rel="noopener noreferrer"
 					>
 						{book.cover_i && (

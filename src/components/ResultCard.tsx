@@ -11,7 +11,6 @@ function ResultCard({ book }: ResultCardProps) {
 	return (
 		<Link
 			to={`/books/${book.key.split("/").pop()}`}
-			target="_blank"
 			rel="noopener noreferrer"
 			className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden cursor-pointer"
 		>

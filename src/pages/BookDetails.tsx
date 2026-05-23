@@ -43,11 +43,6 @@ function BookDetails() {
 		const fetchBook = async () => {
 			try {
 				const data = await getBook(id);
-
-				if (data.authors) {
-					fetchAuthors(data.authors);
-				}
-
 				setBook(data);
 
 				const authorNames = data.authors
