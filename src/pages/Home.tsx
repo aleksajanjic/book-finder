@@ -69,11 +69,13 @@ function Home() {
 				<>
 					<Results books={books} />
 
-					<Pagination
-						currentPage={page}
-						totalPages={totalPages}
-						onPageChange={handlePageChange}
-					/>
+					<div className="flex justify-center items-center m-10">
+						<Pagination
+							currentPage={page}
+							totalPages={totalPages}
+							onPageChange={handlePageChange}
+						/>
+					</div>
 				</>
 			)}
 
