@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCoverUrl } from "../api/openLibrary";
-import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
+import { usePreviouslyViewed } from "../hooks/usePreviouslyViewed";
 import { useBookDetails } from "../hooks/useBookDetails";
-import Loader from "../components/ui/Loader";
+import BookDetailsSkeleton from "../components/BookDetailsSkeleton";
 
 function BackToHome({ onClick }: { onClick: () => void }) {
 	return (
@@ -79,7 +79,12 @@ function BookDetails() {
 	}
 
 	if (isLoading) {
-		return <Loader />;
+		return (
+			<>
+				<BackToHome onClick={goHome} />
+				<BookDetailsSkeleton />
+			</>
+		);
 	}
 
 	if (isError) {
@@ -116,7 +121,7 @@ function BookDetails() {
 			: work.description?.value;
 
 	return (
-		<>
+		<article>
 			<BackToHome onClick={goHome} />
 
 			<div className="mt-8 flex flex-col gap-8 lg:flex-row">
@@ -183,7 +188,7 @@ function BookDetails() {
 					</div>
 				</div>
 			</div>
-		</>
+		</article>
 	);
 }
 

@@ -9,16 +9,29 @@ A React application for searching books via the [Open Library API](https://openl
 - **Pagination** — 8 books per page with shareable URL state (`?q=` and `?page=`)
 - **Book details** — cover, authors, description, ISBN, and publisher
 - **Previously viewed** — books you opened are listed on the home page (persisted in `localStorage`)
-- **Error handling** — toast notifications on failed requests and inline messages on search errors
+- **Loading skeletons** — placeholder UI while search and details load
+- **Accessible UI** — labeled search field, pagination landmarks, descriptive link labels, focus rings
+- **Error handling** — inline messages on failed search or book load (no duplicate toasts)
+
+## Assignment mapping
+
+| Requirement | Implementation |
+|-------------|----------------|
+| Landing page with search by title | `pages/Home.tsx` + `components/Search.tsx` |
+| Search results below the bar | `components/Results.tsx` |
+| Previously viewed on the same page | `components/PreviouslyViewed.tsx` + `context/PreviouslyViewedProvider.tsx` |
+| Book details page | `pages/BookDetails.tsx` at `/books/:id` |
+| Cover, author, publisher, ISBN, description | `useBookDetails` + Open Library works / editions / authors APIs |
+| Only books with covers in results | `buildCoverSearchQuery()` in `api/openLibrary.ts` |
+| React + TypeScript + CSS framework | React 19, TypeScript, Tailwind CSS |
 
 ## Tech stack
 
 - [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vite.dev/) — dev server and build
 - [React Router](https://reactrouter.com/) — client-side routing
-- [TanStack Query](https://tanstack.com/query) — search data fetching and caching
+- [TanStack Query](https://tanstack.com/query) — search and book detail fetching
 - [Tailwind CSS](https://tailwindcss.com/) — styling
-- [Sonner](https://sonner.emilkowal.dev/) — error toasts
 
 ## Getting started
 
@@ -75,11 +88,11 @@ Search uses Solr-style queries so `numFound` reflects only works with covers, ke
 ```text
 src/
 ├── api/              # Open Library fetch helpers
-├── components/       # UI (search, results, pagination, etc.)
+├── components/       # UI (search, results, pagination, skeletons, etc.)
 ├── constants/        # API base URLs
-├── context/          # Previously viewed books state
-├── hooks/            # React Query search hook
-├── lib/              # Query client, HTTP errors, toasts
+├── context/          # Previously viewed provider + context
+├── hooks/            # React Query hooks and context hook
+├── lib/              # Query client, HTTP errors
 ├── pages/            # Home and BookDetails routes
 ├── types/            # TypeScript interfaces
 └── utils/            # localStorage helpers
@@ -88,12 +101,12 @@ src/
 ## Design notes
 
 - **Covers only** — the search query includes `cover_i:[1 TO *]` so the API does not return works without cover metadata. This avoids empty cards and uneven page sizes.
-- **URL as source of truth** — `q` and `page` live in query params so searches and pages are bookmarkable and work with the back button.
-- **React Query** — caches search pages for 5 minutes; revisiting a page avoids redundant requests.
+- **URL as source of truth** — `q` and `page` live in query params so searches and pages are bookmarkable and work with the back button. The search input remounts when `q` changes (`key={q}`), avoiding extra sync effects.
+- **React Query** — caches search pages and book details for 5 minutes; pagination uses `keepPreviousData` so results stay visible while the next page loads.
 - **ISBN and publisher** — loaded from the first edition returned by the editions endpoint, not from the work record alone.
-- **Previously viewed** — stored in React context and synced to `localStorage` (max 10 items).
+- **Previously viewed** — recorded when a detail page loads successfully and the work has a cover; stored in context and `localStorage` (max 10 items).
+- **Errors** — surfaced inline on the page that failed (search or details), without redundant toast notifications.
 
 ## License
 
 This project is for educational / interview purposes. Data provided by [Open Library](https://openlibrary.org/).
-

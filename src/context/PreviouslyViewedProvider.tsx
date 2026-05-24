@@ -1,7 +1,5 @@
 import {
-	createContext,
 	useCallback,
-	useContext,
 	useMemo,
 	useState,
 	type ReactNode,
@@ -12,14 +10,7 @@ import {
 	mergePreviouslyViewed,
 	savePreviouslyViewed,
 } from "../utils/previouslyViewed";
-
-interface PreviouslyViewedContextValue {
-	books: PreviousBook[];
-	addBook: (book: PreviousBook) => void;
-}
-
-const PreviouslyViewedContext =
-	createContext<PreviouslyViewedContextValue | null>(null);
+import { PreviouslyViewedContext } from "./previouslyViewedContext";
 
 export function PreviouslyViewedProvider({ children }: { children: ReactNode }) {
 	const [books, setBooks] = useState<PreviousBook[]>(() =>
@@ -41,16 +32,4 @@ export function PreviouslyViewedProvider({ children }: { children: ReactNode }) 
 			{children}
 		</PreviouslyViewedContext.Provider>
 	);
-}
-
-export function usePreviouslyViewed(): PreviouslyViewedContextValue {
-	const context = useContext(PreviouslyViewedContext);
-
-	if (!context) {
-		throw new Error(
-			"usePreviouslyViewed must be used within PreviouslyViewedProvider",
-		);
-	}
-
-	return context;
 }

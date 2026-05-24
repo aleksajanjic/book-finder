@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
+import { usePreviouslyViewed } from "../hooks/usePreviouslyViewed";
 
 function Header() {
 	const { books } = usePreviouslyViewed();

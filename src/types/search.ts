@@ -1,6 +1,5 @@
 export interface SearchProps {
-	query: string;
-	setQuery: (value: string) => void;
+	initialQuery: string;
 	onSearch: (value: string) => void;
 	onClear: () => void;
 }

@@ -1,15 +1,18 @@
 import { Link } from "react-router-dom";
 import { getCoverUrl } from "../api/openLibrary";
-import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
+import { usePreviouslyViewed } from "../hooks/usePreviouslyViewed";
 
 function PreviouslyViewed() {
 	const { books } = usePreviouslyViewed();
 
 	return (
-		<section className="mt-12">
+		<section className="mt-12" aria-labelledby="previously-viewed-heading">
 			<div className="flex items-center justify-between mb-4">
 				<div>
-					<h2 className="text-2xl font-bold text-text-primary">
+					<h2
+						id="previously-viewed-heading"
+						className="text-2xl font-bold text-text-primary"
+					>
 						Previously Viewed
 					</h2>
 
@@ -23,8 +26,9 @@ function PreviouslyViewed() {
 				{books.map((book) => (
 					<Link
 						key={book.key}
-						className="min-w-45 max-w-125 flex gap-2 p-2 rounded-lg border border-border bg-surface-card hover:bg-surface-elevated"
+						className="flex min-w-45 max-w-125 gap-2 rounded-lg border border-border bg-surface-card p-2 hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
 						to={`/books/${book.key.split("/").pop()}`}
+						aria-label={`View ${book.title}`}
 					>
 						{book.cover_i && (
 							<img

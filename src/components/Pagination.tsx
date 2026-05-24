@@ -54,12 +54,16 @@ function Pagination(props: PaginationProps) {
 	const pages = getPaginationItems(currentPage, totalPages);
 
 	return (
-		<div className="flex items-center gap-2">
+		<nav
+			className="flex items-center gap-2"
+			aria-label="Search results pagination"
+		>
 			<button
 				type="button"
 				onClick={() => onPageChange(currentPage - 1)}
 				disabled={currentPage === 1}
-				className="rounded border px-3 py-1 disabled:opacity-50 cursor-pointer"
+				aria-label="Previous page"
+				className="cursor-pointer rounded border px-3 py-1 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
 			>
 				Prev
 			</button>
@@ -78,8 +82,9 @@ function Pagination(props: PaginationProps) {
 						type="button"
 						key={page}
 						onClick={() => onPageChange(page)}
+						aria-label={`Page ${page}`}
 						aria-current={currentPage === page ? "page" : undefined}
-						className={`min-w-9 rounded border px-3 py-1 cursor-pointer ${
+						className={`min-w-9 cursor-pointer rounded border px-3 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus ${
 							currentPage === page
 								? "bg-black text-white border-black"
 								: ""
@@ -94,11 +99,12 @@ function Pagination(props: PaginationProps) {
 				type="button"
 				onClick={() => onPageChange(currentPage + 1)}
 				disabled={currentPage === totalPages}
-				className="rounded border px-3 py-1 disabled:opacity-50 cursor-pointer"
+				aria-label="Next page"
+				className="cursor-pointer rounded border px-3 py-1 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
 			>
 				Next
 			</button>
-		</div>
+		</nav>
 	);
 }
 

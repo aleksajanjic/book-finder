@@ -7,10 +7,14 @@ interface ResultCardProps {
 }
 
 function ResultCard({ book }: ResultCardProps) {
+	const authors = book.author_name?.join(", ") ?? "Unknown author";
+	const label = `View details for ${book.title} by ${authors}`;
+
 	return (
 		<Link
 			to={`/books/${book.key.split("/").pop()}`}
-			className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden cursor-pointer"
+			aria-label={label}
+			className="flex h-full flex-col overflow-hidden rounded-md border border-border bg-surface-card text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
 		>
 			<div className="w-full h-75 bg-surface-elevated">
 				{book.cover_i && (
