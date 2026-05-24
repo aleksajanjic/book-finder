@@ -1,8 +1,8 @@
-import type { Book } from "../types/books";
+import type { BookSearchResult } from "../types/books";
 import ResultCard from "./ResultCard";
 
 interface ResultsProps {
-	books: Book[];
+	books: BookSearchResult[];
 	totalCount: number;
 }
 

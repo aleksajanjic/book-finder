@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PreviouslyViewed from "../components/PreviouslyViewed";
 import Results from "../components/Results";
 import Search from "../components/Search";
-import { BOOKS_PER_PAGE, searchBooksWithCovers } from "../api/openLibrary";
+import { BOOKS_PER_PAGE } from "../api/openLibrary";
 import Pagination from "../components/Pagination";
 import Loader from "../components/ui/Loader";
-import type { BookSearchResult } from "../types/books";
+import { useBookSearch } from "../hooks/useBookSearch";
 
 function setSearchParamsForQuery(
 	setSearchParams: ReturnType<typeof useSearchParams>[1],
@@ -32,58 +32,15 @@ function Home() {
 	);
 
 	const [query, setQuery] = useState(q);
-	const [books, setBooks] = useState<BookSearchResult[]>([]);
-	const [totalCount, setTotalCount] = useState(0);
-	const [isLoading, setIsLoading] = useState(false);
-	const pageCacheRef = useRef<Map<number, BookSearchResult[]>>(new Map());
-	const lastFetchedQRef = useRef("");
-
+	const { data, isLoading, isError, error } = useBookSearch(q, page);
+	const hasSearch = Boolean(q);
+	const books = hasSearch ? (data?.docs ?? []) : [];
+	const totalCount = hasSearch ? (data?.numFound ?? 0) : 0;
 	const totalPages = Math.ceil(totalCount / BOOKS_PER_PAGE);
 
 	useEffect(() => {
 		setQuery(q);
 	}, [q]);
-
-	const loadPage = async (searchQuery: string, pageNumber: number) => {
-		const cached = pageCacheRef.current.get(pageNumber);
-		if (cached) {
-			setBooks(cached);
-			return;
-		}
-
-		const data = await searchBooksWithCovers(searchQuery, pageNumber);
-		pageCacheRef.current.set(pageNumber, data.docs);
-		setBooks(data.docs);
-		setTotalCount(data.numFound);
-	};
-
-	const fetchBooks = async (searchQuery: string, pageNumber: number) => {
-		try {
-			setIsLoading(true);
-			await loadPage(searchQuery, pageNumber);
-		} catch (error) {
-			console.error(error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		if (!q) {
-			setBooks([]);
-			setTotalCount(0);
-			pageCacheRef.current = new Map();
-			lastFetchedQRef.current = "";
-			return;
-		}
-
-		if (q !== lastFetchedQRef.current) {
-			pageCacheRef.current = new Map();
-			lastFetchedQRef.current = q;
-		}
-
-		void fetchBooks(q, page);
-	}, [q, page]);
 
 	const handleSearch = (value: string) => {
 		const trimmed = value.trim();
@@ -105,10 +62,6 @@ function Home() {
 	const handleClear = () => {
 		setSearchParams({});
 		setQuery("");
-		setBooks([]);
-		setTotalCount(0);
-		pageCacheRef.current = new Map();
-		lastFetchedQRef.current = "";
 	};
 
 	return (
@@ -120,9 +73,15 @@ function Home() {
 				onClear={handleClear}
 			/>
 
-			{isLoading && <Loader />}
+			{hasSearch && isLoading && <Loader />}
 
-			{!isLoading && books.length > 0 && (
+			{hasSearch && isError && (
+				<p className="mt-4 text-red-600" role="alert">
+					{error instanceof Error ? error.message : "Search failed"}
+				</p>
+			)}
+
+			{hasSearch && !isLoading && !isError && books.length > 0 && (
 				<>
 					<Results books={books} totalCount={totalCount} />
 

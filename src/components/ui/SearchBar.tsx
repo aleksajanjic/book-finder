@@ -43,7 +43,7 @@ function SearchBar(props: SearchProps) {
 			</button>
 			<button
 				onClick={onClear}
-				className="px-4 py-2 rounded-md border border-border"
+				className="px-4 py-2 rounded-md border border-border cursor-pointer"
 			>
 				Clear
 			</button>

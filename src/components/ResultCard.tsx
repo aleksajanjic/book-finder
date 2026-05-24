@@ -1,9 +1,9 @@
-import type { Book } from "../types/books";
+import type { BookSearchResult } from "../types/books";
 import { getCoverUrl } from "../api/openLibrary";
 import { Link } from "react-router-dom";
 
 interface ResultCardProps {
-	book: Book;
+	book: BookSearchResult;
 }
 
 function ResultCard({ book }: ResultCardProps) {
