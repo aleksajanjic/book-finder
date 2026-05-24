@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { getCoverUrl } from "../api/openLibrary";
-import { getPreviouslyViewed } from "../utils/previouslyViewed";
+import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
 
 function PreviouslyViewed() {
-	const books = getPreviouslyViewed();
+	const { books } = usePreviouslyViewed();
 
 	return (
 		<section className="mt-12">
@@ -25,7 +25,6 @@ function PreviouslyViewed() {
 						key={book.key}
 						className="min-w-45 max-w-125 flex gap-2 p-2 rounded-lg border border-border bg-surface-card hover:bg-surface-elevated"
 						to={`/books/${book.key.split("/").pop()}`}
-						rel="noopener noreferrer"
 					>
 						{book.cover_i && (
 							<img

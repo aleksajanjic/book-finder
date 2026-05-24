@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBook, getCoverUrl } from "../api/openLibrary";
 import type { BookDetail } from "../types/books";
-import { addPreviouslyViewed } from "../utils/previouslyViewed";
+import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
+import Loader from "../components/ui/Loader";
 
 function BookDetails() {
 	const navigate = useNavigate();
+	const { addBook } = usePreviouslyViewed();
 	const { id } = useParams<{ id: string }>();
 	const [book, setBook] = useState<BookDetail | null>(null);
 	const [authors, setAuthors] = useState<string[]>([]);
@@ -49,7 +51,7 @@ function BookDetails() {
 					? await fetchAuthors(data.authors)
 					: [];
 
-				addPreviouslyViewed({
+				addBook({
 					key: data.key,
 					title: data.title,
 					cover_i: data.covers?.[0],
@@ -62,7 +64,9 @@ function BookDetails() {
 		fetchBook();
 	}, [id]);
 
-	if (!book) return "Loading...";
+	if (!book) {
+		return <Loader />;
+	}
 
 	return (
 		<>
