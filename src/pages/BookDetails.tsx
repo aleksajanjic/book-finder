@@ -1,119 +1,130 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAuthor, getBook, getCoverUrl } from "../api/openLibrary";
-import { toastRequestError } from "../lib/requestToast";
-import type {
-	BookDetail,
-	BookEdition,
-	BookEditionsResponse,
-	WorkAuthorRef,
-} from "../types/books";
+import { getCoverUrl } from "../api/openLibrary";
 import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
+import { useBookDetails } from "../hooks/useBookDetails";
 import Loader from "../components/ui/Loader";
+
+function BackToHome({ onClick }: { onClick: () => void }) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className="w-fit cursor-pointer rounded-md border border-border bg-surface-card px-4 py-2 text-text-primary"
+		>
+			← Return to home page
+		</button>
+	);
+}
+
+function BookDetailsMessage({
+	title,
+	message,
+	onBack,
+}: {
+	title: string;
+	message: string;
+	onBack: () => void;
+}) {
+	return (
+		<div className="space-y-6">
+			<BackToHome onClick={onBack} />
+			<div
+				className="rounded-2xl border border-border bg-surface-card p-10 text-center"
+				role="alert"
+			>
+				<p className="text-base font-medium text-text-primary">
+					{title}
+				</p>
+				<p className="mt-2 text-sm text-text-secondary">{message}</p>
+			</div>
+		</div>
+	);
+}
 
 function BookDetails() {
 	const navigate = useNavigate();
 	const { addBook } = usePreviouslyViewed();
 	const { id } = useParams<{ id: string }>();
-	const [book, setBook] = useState<BookDetail | null>(null);
-	const [authors, setAuthors] = useState<string[] | null>(null);
-	const [edition, setEdition] = useState<BookEdition | null>(null);
-	const [loading, setLoading] = useState(true);
-	const coverId = book?.covers?.[0];
-	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
-	const publisher = edition?.publishers?.[0];
-	const description =
-		typeof book?.description === "string"
-			? book.description
-			: book?.description?.value;
+	const { data, isLoading, isError, error } = useBookDetails(id);
 
-	const fetchAuthors = async (authorRefs: WorkAuthorRef[]) => {
-		try {
-			const results = await Promise.all(
-				authorRefs.map(async (ref) => {
-					const authorId = ref.author.key.split("/").pop();
-
-					if (!authorId) {
-						return "";
-					}
-
-					const data = await getAuthor(authorId);
-					return data.name;
-				}),
-			);
-
-			return results.filter(Boolean);
-		} catch (error) {
-			toastRequestError(error, "Could not load authors");
-			return [];
-		}
-	};
+	const goHome = () => navigate("/");
 
 	useEffect(() => {
-		if (!id) {
+		if (!data) {
 			return;
 		}
 
-		const fetchBook = async () => {
-			setLoading(true);
+		const coverId = data.work.covers?.[0];
+		if (!coverId) {
+			return;
+		}
 
-			try {
-				const work = await getBook(id);
+		addBook({
+			key: data.work.key,
+			title: data.work.title,
+			cover_i: coverId,
+			author_name: data.authorNames,
+		});
+	}, [data, addBook]);
 
-				const authorNames = work.authors
-					? await fetchAuthors(work.authors)
-					: [];
+	if (!id) {
+		return (
+			<BookDetailsMessage
+				title="Invalid book link"
+				message="This page does not include a book id."
+				onBack={goHome}
+			/>
+		);
+	}
 
-				const editionsRes = await fetch(
-					`https://openlibrary.org${work.key}/editions.json`,
-				);
-
-				if (!editionsRes.ok) {
-					throw new Error("Failed to fetch editions");
-				}
-
-				const editionsData =
-					(await editionsRes.json()) as BookEditionsResponse;
-
-				setBook(work);
-				setAuthors(authorNames);
-				setEdition(editionsData.entries?.[0] ?? null);
-
-				addBook({
-					key: work.key,
-					title: work.title,
-					cover_i: work.covers?.[0],
-					author_name: authorNames,
-				});
-			} catch (error) {
-				toastRequestError(error, "Could not load book details");
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchBook();
-	}, [id]);
-
-	if (loading || !book || authors === null) {
+	if (isLoading) {
 		return <Loader />;
 	}
 
+	if (isError) {
+		return (
+			<BookDetailsMessage
+				title="Could not load book"
+				message={
+					error instanceof Error
+						? error.message
+						: "Something went wrong. Please try again."
+				}
+				onBack={goHome}
+			/>
+		);
+	}
+
+	if (!data) {
+		return (
+			<BookDetailsMessage
+				title="Book not found"
+				message="We could not find details for this book."
+				onBack={goHome}
+			/>
+		);
+	}
+
+	const { work, authorNames, edition } = data;
+	const coverId = work.covers?.[0];
+	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
+	const publisher = edition?.publishers?.[0];
+	const description =
+		typeof work.description === "string"
+			? work.description
+			: work.description?.value;
+
 	return (
 		<>
-			<div
-				onClick={() => navigate("/")}
-				className="w-fit cursor-pointer rounded-md border border-border bg-surface-card px-4 py-2 text-text-primary"
-			>
-				← Return to home page
-			</div>
+			<BackToHome onClick={goHome} />
 
 			<div className="mt-8 flex flex-col gap-8 lg:flex-row">
 				<div className="shrink-0">
 					{coverId ? (
 						<img
 							src={getCoverUrl(coverId)}
-							alt={book.title}
+							alt={work.title}
 							className="h-105 w-70 rounded-xl border border-border object-cover shadow-lg"
 						/>
 					) : (
@@ -126,18 +137,18 @@ function BookDetails() {
 				<div className="flex max-w-3xl flex-col gap-6">
 					<div>
 						<h1 className="text-3xl font-bold leading-tight">
-							{book.title}
+							{work.title}
 						</h1>
 
-						{book.first_publish_date && (
+						{work.first_publish_date && (
 							<p className="mt-2 text-text-secondary">
-								First published: {book.first_publish_date}
+								First published: {work.first_publish_date}
 							</p>
 						)}
 
 						<div className="mt-4 flex flex-wrap items-center gap-2">
-							{authors.length > 0 ? (
-								authors.map((author) => (
+							{authorNames.length > 0 ? (
+								authorNames.map((author) => (
 									<div
 										key={author}
 										className="rounded-full border border-border bg-surface-card px-3 py-1 text-sm text-text-secondary"

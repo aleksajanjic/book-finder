@@ -1,7 +1,15 @@
 import { API } from "../constants/api";
 import { assertOkResponse } from "../lib/httpError";
 import { withRequestToast } from "../lib/requestToast";
-import type { Author, BookDetail, BookSearchResult } from "../types/books";
+import type {
+	Author,
+	BookDetail,
+	BookEdition,
+	BookEditionsResponse,
+	BookSearchResult,
+	WorkAuthorRef,
+} from "../types/books";
+import { toastRequestError } from "../lib/requestToast";
 
 export const BOOKS_PER_PAGE = 8;
 const SEARCH_FIELDS =
@@ -61,6 +69,43 @@ async function fetchBook(id: string): Promise<BookDetail> {
 
 export function getBook(id: string): Promise<BookDetail> {
 	return withRequestToast("Could not load book", () => fetchBook(id));
+}
+
+async function fetchBookEditions(workKey: string): Promise<BookEdition | null> {
+	const res = await fetch(`${API.BASE}${workKey}/editions.json`);
+	await assertOkResponse(res, "editions");
+	const data = (await res.json()) as BookEditionsResponse;
+	return data.entries?.[0] ?? null;
+}
+
+export function getBookEditions(workKey: string): Promise<BookEdition | null> {
+	return withRequestToast("Could not load edition details", () =>
+		fetchBookEditions(workKey),
+	);
+}
+
+export async function getAuthorNames(
+	authorRefs: WorkAuthorRef[],
+): Promise<string[]> {
+	try {
+		const results = await Promise.all(
+			authorRefs.map(async (ref) => {
+				const authorId = ref.author.key.split("/").pop();
+
+				if (!authorId) {
+					return "";
+				}
+
+				const data = await getAuthor(authorId);
+				return data.name;
+			}),
+		);
+
+		return results.filter(Boolean);
+	} catch (error) {
+		toastRequestError(error, "Could not load authors");
+		return [];
+	}
 }
 
 export async function getAuthor(id: string): Promise<Author> {
