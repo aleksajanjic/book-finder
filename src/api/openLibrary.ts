@@ -1,5 +1,6 @@
 import { API } from "../constants/api";
-import { rateLimitedFetch } from "../lib/rateLimitedFetch";
+import { assertOkResponse } from "../lib/httpError";
+import { toastRequestError, withRequestToast } from "../lib/requestToast";
 import type { BookDetail, BookSearchResult } from "../types/books";
 
 export const BOOKS_PER_PAGE = 8;
@@ -20,9 +21,9 @@ function buildCoverSearchQuery(title: string): string {
 	return `${titleClause} AND cover_i:[1 TO *]`;
 }
 
-export async function searchBooksWithCovers(
+async function fetchSearchResults(
 	query: string,
-	page = 1,
+	page: number,
 ): Promise<SearchBooksWithCoversResult> {
 	const offset = (page - 1) * BOOKS_PER_PAGE;
 	const params = new URLSearchParams({
@@ -33,11 +34,8 @@ export async function searchBooksWithCovers(
 		fields: SEARCH_FIELDS,
 	});
 
-	const res = await rateLimitedFetch(`${API.BASE}/search.json?${params}`);
-
-	if (!res.ok) {
-		throw new Error("Search failed");
-	}
+	const res = await fetch(`${API.BASE}/search.json?${params}`);
+	await assertOkResponse(res, "search");
 
 	const data = await res.json();
 
@@ -47,18 +45,29 @@ export async function searchBooksWithCovers(
 	};
 }
 
-export async function getBook(id: string): Promise<BookDetail> {
-	const res = await rateLimitedFetch(`${API.BASE}/works/${id}.json`);
+export function searchBooksWithCovers(
+	query: string,
+	page = 1,
+): Promise<SearchBooksWithCoversResult> {
+	return withRequestToast("Search failed", () =>
+		fetchSearchResults(query, page),
+	);
+}
 
-	if (!res.ok) throw new Error("Book fetch failed");
+async function fetchBook(id: string): Promise<BookDetail> {
+	const res = await fetch(`${API.BASE}/works/${id}.json`);
+	await assertOkResponse(res, "book");
 
 	return res.json();
 }
 
-export async function getAuthor(id: string): Promise<{ name: string }> {
-	const res = await rateLimitedFetch(`${API.BASE}/authors/${id}.json`);
+export function getBook(id: string): Promise<BookDetail> {
+	return withRequestToast("Could not load book", () => fetchBook(id));
+}
 
-	if (!res.ok) throw new Error("Author fetch failed");
+export async function getAuthor(id: string): Promise<{ name: string }> {
+	const res = await fetch(`${API.BASE}/authors/${id}.json`);
+	await assertOkResponse(res, "author");
 
 	return res.json();
 }

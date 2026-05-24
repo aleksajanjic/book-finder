@@ -32,11 +32,13 @@ function Home() {
 	);
 
 	const [query, setQuery] = useState(q);
-	const { data, isLoading, isError, error } = useBookSearch(q, page);
+	const { data, isFetching, isError, error } = useBookSearch(q, page);
 	const hasSearch = Boolean(q);
 	const books = hasSearch ? (data?.docs ?? []) : [];
 	const totalCount = hasSearch ? (data?.numFound ?? 0) : 0;
 	const totalPages = Math.ceil(totalCount / BOOKS_PER_PAGE);
+
+  console.log(books)
 
 	useEffect(() => {
 		setQuery(q);
@@ -73,7 +75,7 @@ function Home() {
 				onClear={handleClear}
 			/>
 
-			{hasSearch && isLoading && <Loader />}
+			{hasSearch && isFetching && <Loader />}
 
 			{hasSearch && isError && (
 				<p className="mt-4 text-red-600" role="alert">
@@ -81,7 +83,7 @@ function Home() {
 				</p>
 			)}
 
-			{hasSearch && !isLoading && !isError && books.length > 0 && (
+			{hasSearch && !isFetching && !isError && books.length > 0 && (
 				<>
 					<Results books={books} totalCount={totalCount} />
 
@@ -95,6 +97,19 @@ function Home() {
 						</div>
 					)}
 				</>
+			)}
+
+			{hasSearch && !isFetching && !isError && books.length === 0 && (
+				<div className="flex items-center justify-center rounded-2xl border border-border bg-surface-card p-10">
+					<div className="text-center space-y-2">
+						<p className="text-base font-medium text-text">
+							No results found
+						</p>
+						<p className="text-sm text-text-secondary">
+							Try a different search term
+						</p>
+					</div>
+				</div>
 			)}
 
 			<PreviouslyViewed />

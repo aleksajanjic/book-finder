@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAuthor, getBook, getCoverUrl } from "../api/openLibrary";
+import { toastRequestError } from "../lib/requestToast";
 import type { BookDetail } from "../types/books";
 import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
 import Loader from "../components/ui/Loader";
@@ -18,20 +19,26 @@ function BookDetails() {
 			: book?.description?.value;
 
 	const fetchAuthors = async (authorRefs: { author: { key: string } }[]) => {
-		const results = await Promise.all(
-			authorRefs.map(async (ref) => {
-				const authorId = ref.author.key.split("/").pop();
-				if (!authorId) {
-					return "";
-				}
-				const data = await getAuthor(authorId);
-				return data.name;
-			}),
-		);
+		try {
+			const results = await Promise.all(
+				authorRefs.map(async (ref) => {
+					const authorId = ref.author.key.split("/").pop();
+					if (!authorId) {
+						return "";
+					}
+					const data = await getAuthor(authorId);
+					return data.name;
+				}),
+			);
 
-		setAuthors(results);
+			setAuthors(results);
 
-		return results;
+			return results;
+		} catch (error) {
+			console.error(error);
+			toastRequestError(error, "Could not load authors");
+			return [];
+		}
 	};
 
 	useEffect(() => {
