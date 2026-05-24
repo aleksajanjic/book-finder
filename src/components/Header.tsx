@@ -1,8 +1,15 @@
+import { useEffect, useState } from "react";
 import { getPreviouslyViewed } from "../utils/previouslyViewed";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import type { PreviousBook } from "../types/books";
 
 function Header() {
-	const previousBooks = getPreviouslyViewed();
+	const location = useLocation();
+
+	const [previousBooks, setPreviousBooks] = useState<PreviousBook[]>([]);
+	useEffect(() => {
+		setPreviousBooks(getPreviouslyViewed());
+	}, [location.pathname]);
 
 	return (
 		<div className="bg-surface-card text-text-primary font-extrabold text-2xl flex justify-between items-center p-2 rounded-md">
