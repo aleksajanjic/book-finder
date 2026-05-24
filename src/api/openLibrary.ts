@@ -1,4 +1,5 @@
 import { API } from "../constants/api";
+import { rateLimitedFetch } from "../lib/rateLimitedFetch";
 import type { BookDetail, BookSearchResult } from "../types/books";
 
 export const BOOKS_PER_PAGE = 8;
@@ -32,7 +33,7 @@ export async function searchBooksWithCovers(
 		fields: SEARCH_FIELDS,
 	});
 
-	const res = await fetch(`${API.BASE}/search.json?${params}`);
+	const res = await rateLimitedFetch(`${API.BASE}/search.json?${params}`);
 
 	if (!res.ok) {
 		throw new Error("Search failed");
@@ -47,9 +48,17 @@ export async function searchBooksWithCovers(
 }
 
 export async function getBook(id: string): Promise<BookDetail> {
-	const res = await fetch(`${API.BASE}/works/${id}.json`);
+	const res = await rateLimitedFetch(`${API.BASE}/works/${id}.json`);
 
 	if (!res.ok) throw new Error("Book fetch failed");
+
+	return res.json();
+}
+
+export async function getAuthor(id: string): Promise<{ name: string }> {
+	const res = await rateLimitedFetch(`${API.BASE}/authors/${id}.json`);
+
+	if (!res.ok) throw new Error("Author fetch failed");
 
 	return res.json();
 }

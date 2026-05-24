@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getBook, getCoverUrl } from "../api/openLibrary";
+import { getAuthor, getBook, getCoverUrl } from "../api/openLibrary";
 import type { BookDetail } from "../types/books";
 import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
 import Loader from "../components/ui/Loader";
@@ -17,17 +17,14 @@ function BookDetails() {
 			? book?.description
 			: book?.description?.value;
 
-	const fetchAuthors = async (authorRefs: any[]) => {
+	const fetchAuthors = async (authorRefs: { author: { key: string } }[]) => {
 		const results = await Promise.all(
 			authorRefs.map(async (ref) => {
-				const id = ref.author.key.split("/").pop();
-
-				const res = await fetch(
-					`https://openlibrary.org/authors/${id}.json`,
-				);
-
-				const data = await res.json();
-
+				const authorId = ref.author.key.split("/").pop();
+				if (!authorId) {
+					return "";
+				}
+				const data = await getAuthor(authorId);
 				return data.name;
 			}),
 		);
