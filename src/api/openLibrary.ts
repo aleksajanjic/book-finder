@@ -1,11 +1,10 @@
 import { API } from "../constants/api";
 import { assertOkResponse } from "../lib/httpError";
-import { toastRequestError, withRequestToast } from "../lib/requestToast";
+import { withRequestToast } from "../lib/requestToast";
 import type { BookDetail, BookSearchResult } from "../types/books";
 
 export const BOOKS_PER_PAGE = 8;
-
-const SEARCH_FIELDS = "key,title,author_name,cover_i,first_publish_year";
+const SEARCH_FIELDS = "key,title,author_name,cover_i,first_publish_year, isnb";
 
 export interface SearchBooksWithCoversResult {
 	docs: BookSearchResult[];
@@ -31,12 +30,10 @@ async function fetchSearchResults(
 		offset: String(offset),
 		limit: String(BOOKS_PER_PAGE),
 		facet: "false",
-		fields: SEARCH_FIELDS,
 	});
 
 	const res = await fetch(`${API.BASE}/search.json?${params}`);
 	await assertOkResponse(res, "search");
-
 	const data = await res.json();
 
 	return {
@@ -57,7 +54,6 @@ export function searchBooksWithCovers(
 async function fetchBook(id: string): Promise<BookDetail> {
 	const res = await fetch(`${API.BASE}/works/${id}.json`);
 	await assertOkResponse(res, "book");
-
 	return res.json();
 }
 
@@ -68,7 +64,6 @@ export function getBook(id: string): Promise<BookDetail> {
 export async function getAuthor(id: string): Promise<{ name: string }> {
 	const res = await fetch(`${API.BASE}/authors/${id}.json`);
 	await assertOkResponse(res, "author");
-
 	return res.json();
 }
 
@@ -79,3 +74,19 @@ export const getCoverUrl = (
 	if (!coverId) return undefined;
 	return `${API.COVERS}/${coverId}-${size}.jpg`;
 };
+
+export async function searchBook() {
+	const offset = (1 - 1) * BOOKS_PER_PAGE;
+
+	const params = new URLSearchParams({
+		q: buildCoverSearchQuery("batman"),
+	});
+
+	const res = await fetch(`${API.BASE}/search.json?${params.toString()}`);
+
+	if (!res.ok) {
+		throw new Error("Failed to fetch books");
+	}
+
+	return res.json();
+}

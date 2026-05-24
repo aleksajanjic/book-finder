@@ -6,36 +6,51 @@ import type { BookDetail } from "../types/books";
 import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
 import Loader from "../components/ui/Loader";
 
+type AuthorRef = {
+	author: {
+		key: string;
+	};
+};
+
+type Edition = {
+	isbn_10?: string[];
+	isbn_13?: string[];
+	publishers?: string[];
+};
+
 function BookDetails() {
 	const navigate = useNavigate();
 	const { addBook } = usePreviouslyViewed();
 	const { id } = useParams<{ id: string }>();
 	const [book, setBook] = useState<BookDetail | null>(null);
-	const [authors, setAuthors] = useState<string[]>([]);
-	const coverId = book?.covers?.[0] ?? (book as any)?.cover_i;
+	const [authors, setAuthors] = useState<string[] | null>(null);
+	const [edition, setEdition] = useState<Edition | null>(null);
+	const [loading, setLoading] = useState(true);
+	const coverId = book?.covers?.[0];
 	const description =
 		typeof book?.description === "string"
-			? book?.description
+			? book.description
 			: book?.description?.value;
+	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
+	const publisher = edition?.publishers?.[0];
 
-	const fetchAuthors = async (authorRefs: { author: { key: string } }[]) => {
+	const fetchAuthors = async (authorRefs: AuthorRef[]) => {
 		try {
 			const results = await Promise.all(
 				authorRefs.map(async (ref) => {
 					const authorId = ref.author.key.split("/").pop();
+
 					if (!authorId) {
 						return "";
 					}
+
 					const data = await getAuthor(authorId);
 					return data.name;
 				}),
 			);
 
-			setAuthors(results);
-
-			return results;
+			return results.filter(Boolean);
 		} catch (error) {
-			console.error(error);
 			toastRequestError(error, "Could not load authors");
 			return [];
 		}
@@ -47,28 +62,46 @@ function BookDetails() {
 		}
 
 		const fetchBook = async () => {
-			try {
-				const data = await getBook(id);
-				setBook(data);
+			setLoading(true);
 
-				const authorNames = data.authors
-					? await fetchAuthors(data.authors)
+			try {
+				const work = await getBook(id);
+
+				const authorNames = work.authors
+					? await fetchAuthors(work.authors)
 					: [];
 
+				const editionsRes = await fetch(
+					`https://openlibrary.org${work.key}/editions.json`,
+				);
+
+				if (!editionsRes.ok) {
+					throw new Error("Failed to fetch editions");
+				}
+
+				const editionsData = await editionsRes.json();
+
+				setBook(work);
+				setAuthors(authorNames);
+				setEdition(editionsData.entries?.[0] ?? null);
+
 				addBook({
-					key: data.key,
-					title: data.title,
-					cover_i: data.covers?.[0],
+					key: work.key,
+					title: work.title,
+					cover_i: work.covers?.[0],
 					author_name: authorNames,
 				});
 			} catch (error) {
-				console.error(error);
+				toastRequestError(error, "Could not load book details");
+			} finally {
+				setLoading(false);
 			}
 		};
+
 		fetchBook();
 	}, [id]);
 
-	if (!book) {
+	if (loading || !book || authors === null) {
 		return <Loader />;
 	}
 
@@ -76,50 +109,48 @@ function BookDetails() {
 		<>
 			<div
 				onClick={() => navigate("/")}
-				className="h-full flex flex-col rounded-md border border-border bg-surface-card text-text-primary overflow-hidden cursor-pointer w-fit px-4"
+				className="w-fit cursor-pointer rounded-md border border-border bg-surface-card px-4 py-2 text-text-primary"
 			>
-				← return to home page
+				← Return to home page
 			</div>
 
-			<div className="flex flex-col lg:flex-row gap-8 mt-8">
+			<div className="mt-8 flex flex-col gap-8 lg:flex-row">
 				<div className="shrink-0">
-					{coverId && (
+					{coverId ? (
 						<img
 							src={getCoverUrl(coverId)}
 							alt={book.title}
-							className="w-70 h-105 object-cover rounded-xl shadow-lg border border-border"
+							className="h-105 w-70 rounded-xl border border-border object-cover shadow-lg"
 						/>
+					) : (
+						<div className="flex h-105 w-70 items-center justify-center rounded-xl border border-border bg-surface-card text-text-secondary">
+							No cover available
+						</div>
 					)}
 				</div>
 
-				<div className="flex flex-col gap-6">
+				<div className="flex max-w-3xl flex-col gap-6">
 					<div>
 						<h1 className="text-3xl font-bold leading-tight">
 							{book.title}
 						</h1>
 
-						<div className="leading-relaxed text-text-secondary max-w-2xl">
-							{book?.first_publish_date && (
-								<p>First published: {book.first_publish_date}</p>
-							)}
-						</div>
+						{book.first_publish_date && (
+							<p className="mt-2 text-text-secondary">
+								First published: {book.first_publish_date}
+							</p>
+						)}
 
-						<div className="flex flex-wrap items-center gap-2 mt-3">
+						<div className="mt-4 flex flex-wrap items-center gap-2">
 							{authors.length > 0 ? (
-								<>
-									<p className="text-text-secondary">
-										Authors:
-									</p>
-
-									{authors.map((author) => (
-										<div
-											key={author}
-											className="px-3 py-1 rounded-full border border-border bg-surface-card text-sm text-text-secondary"
-										>
-											{author}
-										</div>
-									))}
-								</>
+								authors.map((author) => (
+									<div
+										key={author}
+										className="rounded-full border border-border bg-surface-card px-3 py-1 text-sm text-text-secondary"
+									>
+										{author}
+									</div>
+								))
 							) : (
 								<div className="text-text-secondary">
 									Unknown author
@@ -129,16 +160,20 @@ function BookDetails() {
 					</div>
 
 					<div className="flex flex-wrap gap-3">
-						<div className="px-3 py-1 rounded-full border border-border text-sm text-text-secondary">
-							Edition: {book.edition_count}
-						</div>
+						{isbn && (
+							<div className="rounded-full border border-border px-3 py-1 text-sm text-text-secondary">
+								ISBN: {isbn}
+							</div>
+						)}
 
-						<div className="px-3 py-1 rounded-full border border-border text-sm text-text-secondary">
-							Access: {book.ebook_access}
-						</div>
+						{publisher && (
+							<div className="rounded-full border border-border px-3 py-1 text-sm text-text-secondary">
+								Publisher: {publisher}
+							</div>
+						)}
 					</div>
 
-					<div className="leading-relaxed text-text-secondary max-w-2xl">
+					<div className="max-w-2xl leading-relaxed text-text-secondary">
 						{description || "No description available"}
 					</div>
 				</div>
