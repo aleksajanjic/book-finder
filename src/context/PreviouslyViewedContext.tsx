@@ -21,11 +21,7 @@ interface PreviouslyViewedContextValue {
 const PreviouslyViewedContext =
 	createContext<PreviouslyViewedContextValue | null>(null);
 
-export function PreviouslyViewedProvider({
-	children,
-}: {
-	children: ReactNode;
-}) {
+export function PreviouslyViewedProvider({ children }: { children: ReactNode }) {
 	const [books, setBooks] = useState<PreviousBook[]>(() =>
 		getPreviouslyViewed(),
 	);
@@ -38,10 +34,7 @@ export function PreviouslyViewedProvider({
 		});
 	}, []);
 
-	const value = useMemo(
-		() => ({ books, addBook }),
-		[books, addBook],
-	);
+	const value = useMemo(() => ({ books, addBook }), [books, addBook]);
 
 	return (
 		<PreviouslyViewedContext.Provider value={value}>

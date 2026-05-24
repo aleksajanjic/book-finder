@@ -4,6 +4,9 @@ export interface BookSearchResult {
 	author_name?: string[];
 	cover_i?: number;
 	first_publish_year?: number;
+	isbn?: string[];
+	isbn_10?: string[];
+	isbn_13?: string[];
 }
 
 export interface BookDetail {
@@ -12,30 +15,32 @@ export interface BookDetail {
 	description?: string | { value?: string };
 	covers?: number[];
 	subjects?: string[];
-	author_name?: string[];
-	edition_count?: number;
+	authors?: WorkAuthorRef[];
 	first_publish_date?: string;
-	ebook_access?: string;
-	authors?: { author: { key: string } }[];
 }
 
-export interface ViewedBook {
-	id: string;
-	title: string;
-	author: string;
-	coverId: number;
+export interface WorkAuthorRef {
+	author: {
+		key: string;
+	};
+	type?: {
+		key: string;
+	};
 }
 
-export interface Book {
-	author_key: string[];
-	author_name: string[];
-	ebook_access: string;
-	edition_count: number;
-	has_fulltext: boolean;
-	key: string;
-	public_scan_b: boolean;
-	title: string;
-	cover_i?: number;
+export interface Author {
+	name: string;
+}
+
+export interface BookEdition {
+	title?: string;
+	isbn_10?: string[];
+	isbn_13?: string[];
+	publishers?: string[];
+}
+
+export interface BookEditionsResponse {
+	entries: BookEdition[];
 }
 
 export interface PreviousBook {

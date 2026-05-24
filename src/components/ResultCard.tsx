@@ -7,7 +7,6 @@ interface ResultCardProps {
 }
 
 function ResultCard({ book }: ResultCardProps) {
-
 	return (
 		<Link
 			to={`/books/${book.key.split("/").pop()}`}

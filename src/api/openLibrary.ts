@@ -1,10 +1,11 @@
 import { API } from "../constants/api";
 import { assertOkResponse } from "../lib/httpError";
 import { withRequestToast } from "../lib/requestToast";
-import type { BookDetail, BookSearchResult } from "../types/books";
+import type { Author, BookDetail, BookSearchResult } from "../types/books";
 
 export const BOOKS_PER_PAGE = 8;
-const SEARCH_FIELDS = "key,title,author_name,cover_i,first_publish_year, isnb";
+const SEARCH_FIELDS =
+	"key,title,author_name,cover_i,first_publish_year,isbn,isbn_10,isbn_13";
 
 export interface SearchBooksWithCoversResult {
 	docs: BookSearchResult[];
@@ -30,6 +31,7 @@ async function fetchSearchResults(
 		offset: String(offset),
 		limit: String(BOOKS_PER_PAGE),
 		facet: "false",
+		fields: SEARCH_FIELDS,
 	});
 
 	const res = await fetch(`${API.BASE}/search.json?${params}`);
@@ -61,7 +63,7 @@ export function getBook(id: string): Promise<BookDetail> {
 	return withRequestToast("Could not load book", () => fetchBook(id));
 }
 
-export async function getAuthor(id: string): Promise<{ name: string }> {
+export async function getAuthor(id: string): Promise<Author> {
 	const res = await fetch(`${API.BASE}/authors/${id}.json`);
 	await assertOkResponse(res, "author");
 	return res.json();

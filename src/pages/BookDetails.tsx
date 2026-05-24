@@ -2,21 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAuthor, getBook, getCoverUrl } from "../api/openLibrary";
 import { toastRequestError } from "../lib/requestToast";
-import type { BookDetail } from "../types/books";
+import type {
+	BookDetail,
+	BookEdition,
+	BookEditionsResponse,
+	WorkAuthorRef,
+} from "../types/books";
 import { usePreviouslyViewed } from "../context/PreviouslyViewedContext";
 import Loader from "../components/ui/Loader";
-
-type AuthorRef = {
-	author: {
-		key: string;
-	};
-};
-
-type Edition = {
-	isbn_10?: string[];
-	isbn_13?: string[];
-	publishers?: string[];
-};
 
 function BookDetails() {
 	const navigate = useNavigate();
@@ -24,17 +17,17 @@ function BookDetails() {
 	const { id } = useParams<{ id: string }>();
 	const [book, setBook] = useState<BookDetail | null>(null);
 	const [authors, setAuthors] = useState<string[] | null>(null);
-	const [edition, setEdition] = useState<Edition | null>(null);
+	const [edition, setEdition] = useState<BookEdition | null>(null);
 	const [loading, setLoading] = useState(true);
 	const coverId = book?.covers?.[0];
+	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
+	const publisher = edition?.publishers?.[0];
 	const description =
 		typeof book?.description === "string"
 			? book.description
 			: book?.description?.value;
-	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
-	const publisher = edition?.publishers?.[0];
 
-	const fetchAuthors = async (authorRefs: AuthorRef[]) => {
+	const fetchAuthors = async (authorRefs: WorkAuthorRef[]) => {
 		try {
 			const results = await Promise.all(
 				authorRefs.map(async (ref) => {
@@ -79,7 +72,8 @@ function BookDetails() {
 					throw new Error("Failed to fetch editions");
 				}
 
-				const editionsData = await editionsRes.json();
+				const editionsData =
+					(await editionsRes.json()) as BookEditionsResponse;
 
 				setBook(work);
 				setAuthors(authorNames);
