@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PreviouslyViewed from "../components/PreviouslyViewed";
 import Results from "../components/Results";
 import Search from "../components/Search";
-import { BOOKS_PER_PAGE, searchBook } from "../api/openLibrary";
+import { BOOKS_PER_PAGE } from "../api/openLibrary";
 import Pagination from "../components/Pagination";
 import Loader from "../components/ui/Loader";
 import { useBookSearch } from "../hooks/useBookSearch";
@@ -33,22 +33,10 @@ function Home() {
 
 	const [query, setQuery] = useState(q);
 	const { data, isFetching, isError, error } = useBookSearch(q, page);
-	const [tempBooks, setTempBooks] = useState();
 	const hasSearch = Boolean(q);
 	const books = hasSearch ? (data?.docs ?? []) : [];
 	const totalCount = hasSearch ? (data?.numFound ?? 0) : 0;
 	const totalPages = Math.ceil(totalCount / BOOKS_PER_PAGE);
-
-	useEffect(() => {
-		const loadBooks = async () => {
-			const data = await searchBook();
-			setTempBooks(data.docs);
-		};
-		loadBooks();
-	}, []);
-
-	console.log(books);
-	console.log("tempBooks", tempBooks);
 
 	useEffect(() => {
 		setQuery(q);

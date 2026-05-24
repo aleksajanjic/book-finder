@@ -74,19 +74,3 @@ export const getCoverUrl = (
 	if (!coverId) return undefined;
 	return `${API.COVERS}/${coverId}-${size}.jpg`;
 };
-
-export async function searchBook() {
-	const offset = (1 - 1) * BOOKS_PER_PAGE;
-
-	const params = new URLSearchParams({
-		q: buildCoverSearchQuery("batman"),
-	});
-
-	const res = await fetch(`${API.BASE}/search.json?${params.toString()}`);
-
-	if (!res.ok) {
-		throw new Error("Failed to fetch books");
-	}
-
-	return res.json();
-}
