@@ -10,7 +10,6 @@ function App() {
 		<PreviouslyViewedProvider>
 			<div className="min-h-screen bg-surface text-text-primary">
 				<Header />
-
 				<main id="main-content" className="p-6">
 					<Routes>
 						<Route path="/" element={<Home />} />

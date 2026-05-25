@@ -12,7 +12,7 @@ export function useBookSearch(query: string, page: number) {
 		queryKey: bookSearchKeys.list(query, page),
 		queryFn: () => searchBooksWithCovers(query, page),
 		enabled: Boolean(query),
-		// Keep prior page while paginating; new search term → skeleton, not old results.
+
 		placeholderData: (previousData, previousQuery) => {
 			if (!previousQuery?.state.data) {
 				return previousData;
