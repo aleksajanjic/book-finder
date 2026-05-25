@@ -1,11 +1,14 @@
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import PreviouslyViewed from "../components/PreviouslyViewed";
 import Results from "../components/Results";
 import ResultsSkeleton from "../components/ResultsSkeleton";
 import Search from "../components/Search";
 import HomeWelcome from "../components/HomeWelcome";
+import TopProgress from "../components/ui/TopProgress";
 import { BOOKS_PER_PAGE } from "../api/openLibrary";
 import Pagination from "../components/Pagination";
+import { prefetchBookSearch } from "../hooks/prefetchBookSearch";
 import { useBookSearch } from "../hooks/useBookSearch";
 
 function setSearchParamsForQuery(
@@ -41,6 +44,15 @@ function Home() {
 	const totalPages = Math.ceil(totalCount / BOOKS_PER_PAGE);
 	const showInitialSkeleton = hasSearch && isLoading;
 	const showResults = hasSearch && !isError && books.length > 0;
+	const showPageProgress = hasSearch && isFetching && !isLoading;
+
+	useEffect(() => {
+		if (!q || !data || page >= totalPages) {
+			return;
+		}
+
+		prefetchBookSearch(q, page + 1);
+	}, [q, page, totalPages, data]);
 
 	const handleSearch = (value: string) => {
 		const trimmed = value.trim();
@@ -65,6 +77,8 @@ function Home() {
 
 	return (
 		<div className="flex flex-col">
+			<TopProgress active={hasSearch && isFetching} />
+
 			<Search
 				key={q}
 				initialQuery={q}
@@ -83,14 +97,7 @@ function Home() {
 			)}
 
 			{showResults && (
-				<div
-					className={
-						isFetching && !isLoading
-							? "mt-4 opacity-60 transition-opacity"
-							: "mt-4"
-					}
-					aria-busy={isFetching}
-				>
+				<div className="mt-4" aria-busy={showPageProgress}>
 					<Results books={books} totalCount={totalCount} />
 
 					{totalPages > 1 && (
@@ -98,6 +105,7 @@ function Home() {
 							<Pagination
 								currentPage={page}
 								totalPages={totalPages}
+								searchQuery={q}
 								onPageChange={handlePageChange}
 							/>
 						</div>

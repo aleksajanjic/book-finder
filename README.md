@@ -12,6 +12,8 @@ A React application for searching books via the [Open Library API](https://openl
 - **Loading skeletons** — placeholder UI while search and details load
 - **Accessible UI** — labeled search field, pagination landmarks, descriptive link labels, focus rings
 - **Error handling** — inline messages on failed search or book load (no duplicate toasts)
+- **Prefetching** — hover/focus on book cards and pagination; next search page prefetched after each load
+- **Perceived performance** — skeleton grids, top progress bar, instant detail paint from list preview state
 
 ## Assignment mapping
 
@@ -106,6 +108,9 @@ src/
 - **ISBN and publisher** — loaded from the first edition returned by the editions endpoint, not from the work record alone.
 - **Previously viewed** — recorded when a detail page loads successfully and the work has a cover; stored in context and `localStorage` (max 10 items).
 - **Errors** — surfaced inline on the page that failed (search or details), without redundant toast notifications.
+- **Detail fetch** — work loads first, then authors + editions in parallel (`Promise.all`). Prefetch on card hover fills React Query cache before navigation.
+- **Preview state** — list links pass `location.state.preview` so cover, title, and authors render immediately; metadata panel skeleton fills in after fetch.
+- **Search pagination** — `keepPreviousData` keeps the grid visible; `TopProgress` + prefetch of page `n+1` and hover targets make page changes feel instant when cached.
 
 ## License
 

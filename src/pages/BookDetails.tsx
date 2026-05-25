@@ -1,9 +1,12 @@
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCoverUrl } from "../api/openLibrary";
+import BookDetailsPanelSkeleton from "../components/BookDetailsPanelSkeleton";
+import BookDetailsSkeleton from "../components/BookDetailsSkeleton";
+import TopProgress from "../components/ui/TopProgress";
 import { usePreviouslyViewed } from "../hooks/usePreviouslyViewed";
 import { useBookDetails } from "../hooks/useBookDetails";
-import BookDetailsSkeleton from "../components/BookDetailsSkeleton";
+import type { BookDetailsLocationState } from "../types/navigation";
 
 function BackToHome({ onClick }: { onClick: () => void }) {
 	return (
@@ -42,13 +45,35 @@ function BookDetailsMessage({
 	);
 }
 
+function AuthorChips({ authors }: { authors: string[] }) {
+	return (
+		<div className="mt-4 flex flex-wrap items-center gap-2">
+			{authors.length > 0 ? (
+				authors.map((author) => (
+					<div
+						key={author}
+						className="rounded-full border border-border bg-surface-card px-3 py-1 text-sm text-text-secondary"
+					>
+						{author}
+					</div>
+				))
+			) : (
+				<div className="text-text-secondary">Unknown author</div>
+			)}
+		</div>
+	);
+}
+
 function BookDetails() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { addBook } = usePreviouslyViewed();
 	const { id } = useParams<{ id: string }>();
-	const { data, isLoading, isError, error } = useBookDetails(id);
+	const { data, isLoading, isFetching, isError, error } = useBookDetails(id);
 
-	const goHome = () => navigate("/");
+	const preview = (location.state as BookDetailsLocationState | null)
+		?.preview;
+	const goHome = () => navigate(-1);
 
 	useEffect(() => {
 		if (!data) {
@@ -78,9 +103,48 @@ function BookDetails() {
 		);
 	}
 
-	if (isLoading) {
+	if (isLoading && !data) {
+		if (preview) {
+			const coverId = preview.cover_i;
+
+			return (
+				<article>
+					<TopProgress active={isFetching} />
+					<BackToHome onClick={goHome} />
+					<div className="mt-8 flex flex-col gap-8 lg:flex-row">
+						<div className="shrink-0">
+							{coverId ? (
+								<img
+									src={getCoverUrl(coverId)}
+									alt={preview.title}
+									className="h-105 w-70 rounded-xl border border-border object-cover shadow-lg"
+								/>
+							) : (
+								<div className="flex h-105 w-70 items-center justify-center rounded-xl border border-border bg-surface-card text-text-secondary">
+									No cover available
+								</div>
+							)}
+						</div>
+
+						<div className="flex max-w-3xl flex-col gap-6">
+							<div>
+								<h1 className="text-3xl font-bold leading-tight">
+									{preview.title}
+								</h1>
+								<AuthorChips
+									authors={preview.author_name ?? []}
+								/>
+							</div>
+							<BookDetailsPanelSkeleton />
+						</div>
+					</div>
+				</article>
+			);
+		}
+
 		return (
 			<>
+				<TopProgress active />
 				<BackToHome onClick={goHome} />
 				<BookDetailsSkeleton />
 			</>
@@ -112,7 +176,7 @@ function BookDetails() {
 	}
 
 	const { work, authorNames, edition } = data;
-	const coverId = work.covers?.[0];
+	const coverId = work.covers?.[0] ?? preview?.cover_i;
 	const isbn = edition?.isbn_13?.[0] ?? edition?.isbn_10?.[0];
 	const publisher = edition?.publishers?.[0];
 	const description =
@@ -151,22 +215,7 @@ function BookDetails() {
 							</p>
 						)}
 
-						<div className="mt-4 flex flex-wrap items-center gap-2">
-							{authorNames.length > 0 ? (
-								authorNames.map((author) => (
-									<div
-										key={author}
-										className="rounded-full border border-border bg-surface-card px-3 py-1 text-sm text-text-secondary"
-									>
-										{author}
-									</div>
-								))
-							) : (
-								<div className="text-text-secondary">
-									Unknown author
-								</div>
-							)}
-						</div>
+						<AuthorChips authors={authorNames} />
 					</div>
 
 					<div className="flex flex-wrap gap-3">

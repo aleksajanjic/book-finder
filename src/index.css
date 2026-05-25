@@ -1,2 +1,15 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
+
+@keyframes top-progress {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(400%);
+	}
+}
+
+.top-progress-bar {
+	animation: top-progress 1s ease-in-out infinite;
+}

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { searchBooksWithCovers } from "../api/openLibrary";
 
 export const bookSearchKeys = {
@@ -12,6 +12,19 @@ export function useBookSearch(query: string, page: number) {
 		queryKey: bookSearchKeys.list(query, page),
 		queryFn: () => searchBooksWithCovers(query, page),
 		enabled: Boolean(query),
-		placeholderData: keepPreviousData,
+		// Keep prior page while paginating; new search term → skeleton, not old results.
+		placeholderData: (previousData, previousQuery) => {
+			if (!previousQuery?.state.data) {
+				return previousData;
+			}
+
+			const [, prevQ, prevPage] = previousQuery.queryKey;
+
+			if (prevQ === query && prevPage !== page) {
+				return previousQuery.state.data;
+			}
+
+			return undefined;
+		},
 	});
 }
