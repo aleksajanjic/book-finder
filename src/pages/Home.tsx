@@ -101,7 +101,7 @@ function Home() {
 					<Results books={books} totalCount={totalCount} />
 
 					{totalPages > 1 && (
-						<div className="m-10 flex items-center justify-center">
+						<div className="mx-auto mt-8 mb-6 w-full max-w-full px-2 sm:mt-10 sm:mb-10">
 							<Pagination
 								currentPage={page}
 								totalPages={totalPages}
